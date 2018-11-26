@@ -135,44 +135,6 @@ void callback(char* topic, byte * payload, unsigned int length) {
   int intPayload = newPayload.toInt();
   if (newTopic == "kitchenws/function") {
     currentFunction = newPayload;
-    /*
-        if (newPayload == "Manual") {
-          currentFunction = "Manual";
-        }
-        else if (newPayload == "ON") {
-          currentFunction = "ON";
-        }
-        else if (newPayload == "MakeRed") {
-          currentFunction = "MakeRed";
-        }
-        else if (newPayload == "MakeOrange") {
-          currentFunction = "MakeOrange";
-        }
-        else if (newPayload == "CenterOut") {
-          currentFunction = "CenterOut";
-        }
-        else if (newPayload == "MakePurple") {
-          currentFunction = "MakePurple";
-        }
-        else if (newPayload == "ColorSweep") {
-          currentFunction = "ColorSweep";
-        }
-        else if (newPayload == "BoringSweep") {
-          currentFunction = "BoringSweep";
-        }
-        else if (newPayload == "OFF") {
-          currentFunction = "OFF";
-          //      timer.setTimeout(2000, ManualMode);
-        }
-        else if (newPayload == "mychsv") {
-          currentFunction = "mychsv";
-        }
-        else if (newPayload == "Restart") {
-          ESP.restart();
-        }
-        else {
-          client.publish("kitchenws/status", "Unknown Command");
-        }*/
   }
   if (newTopic == "kitchenws/hue") {
     myHue = intPayload;
@@ -230,11 +192,10 @@ void CenterOut() {
 
 void MakePurple() {
   int purpleLed = 0;
-  int gap = 20;
   while (currentFunction == "MakePurple") {
     if (purpleLed) leds[purpleLed] = CRGB::Purple;
     FastLED.show();
-    if (purpleLed + gap <  NUM_LEDS) leds[purpleLed] = CRGB::Black;
+    if (purpleLed <  NUM_LEDS) leds[purpleLed] = CRGB::Black;
     delay(20);
     purpleLed ++;
     client.loop();
