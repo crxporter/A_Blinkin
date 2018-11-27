@@ -199,9 +199,9 @@ void CenterOut() {
 void MakePurple() {
   int purpleLed = 0;
   while (currentFunction == "MakePurple") {
-    if (purpleLed) leds[purpleLed] = CRGB::Purple;
+    leds[purpleLed] = CRGB::Purple;
     FastLED.show();
-    if (purpleLed <  NUM_LEDS) leds[purpleLed] = CRGB::Black;
+    leds[purpleLed] = CRGB::Black;
     delay(20);
     purpleLed ++;
     client.loop();
@@ -214,10 +214,10 @@ void MakePurplechase() {
   int purpleLed = 0;
   int gap = 20;
   while (currentFunction == "MakePurplechase") {
-    if (purpleLed + gap < NUM_LEDS) leds[purpleLed] = CRGB::Purple;
+    if (purpleLed < NUM_LEDS) leds[purpleLed] = CRGB::Purple;
     if (purpleLed - gap >= 0) leds[purpleLed - gap] = CRGB::Yellow;
     FastLED.show();
-    if (purpleLed + gap <  NUM_LEDS) leds[purpleLed] = CRGB::Black;
+    if (purpleLed <  NUM_LEDS) leds[purpleLed] = CRGB::Black;
     if (purpleLed - gap >= 0) leds[purpleLed - gap] = CRGB::Black;
     delay(20);
     purpleLed ++;
@@ -232,12 +232,12 @@ void RGBChase() {
   int gap1 = 10;
   int gap2 = 20;
   while (currentFunction == "RGBChase") {
-    if (LoopNumber + gap < NUM_LEDS) leds[LoopNumber] = CRGB::Red;
-    if (LoopNumber - gap < NUM_LEDs && LoopNumber + gap1 >= NUM_LEDS) leds[LoopNumber - gap1] = CRGB::Green;
+    if (LoopNumber < NUM_LEDS) leds[LoopNumber] = CRGB::Red;
+    if (LoopNumber - gap1 < NUM_LEDS && LoopNumber - gap1 >= 0) leds[LoopNumber - gap1] = CRGB::Green;
     if (LoopNumber - gap2 >= 0) leds[LoopNumber - gap2] = CRGB::Blue;
     FastLED.show();
-    if (LoopNumber + gap < NUM_LEDS) leds[LoopNumber] = CRGB::Black;
-    if (LoopNumber - gap < NUM_LEDs && LoopNumber + gap1 >= NUM_LEDS) leds[LoopNumber - gap1] = CRGB::Black;
+    if (LoopNumber < NUM_LEDS) leds[LoopNumber] = CRGB::Black;
+    if (LoopNumber - gap1 < NUM_LEDS && LoopNumber - gap1 >= 0) leds[LoopNumber - gap1] = CRGB::Black;
     if (LoopNumber - gap2 >= 0) leds[LoopNumber - gap2] = CRGB::Black;
     delay(20);
     LoopNumber ++;
