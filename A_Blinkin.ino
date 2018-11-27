@@ -82,6 +82,9 @@ void loop() {
     else if (currentFunction == "MakePurplechase") {
       MakePurplechase();
     }
+    else if (currentFunction == "RGBChase") {
+      RGBChase();
+    }
     else if (currentFunction == "ColorSweep") {
       ColorSweep();
     }
@@ -222,6 +225,24 @@ void MakePurplechase() {
     if (purpleLed > NUM_LEDS + gap) {
       purpleLed = 0;
     }
+  }
+}
+void RGBChase() {
+  int LoopNumber = 0;
+  int gap1 = 10;
+  int gap2 = 20;
+  while (currentFunction == "RGBChase") {
+    if (LoopNumber + gap < NUM_LEDS) leds[LoopNumber] = CRGB::Red;
+    if (LoopNumber - gap < NUM_LEDs && LoopNumber + gap1 >= NUM_LEDS) leds[LoopNumber - gap1] = CRGB::Green;
+    if (LoopNumber - gap2 >= 0) leds[LoopNumber - gap2] = CRGB::Blue;
+    FastLED.show();
+    if (LoopNumber + gap < NUM_LEDS) leds[LoopNumber] = CRGB::Black;
+    if (LoopNumber - gap < NUM_LEDs && LoopNumber + gap1 >= NUM_LEDS) leds[LoopNumber - gap1] = CRGB::Black;
+    if (LoopNumber - gap2 >= 0) leds[LoopNumber - gap2] = CRGB::Black;
+    delay(20);
+    LoopNumber ++;
+    client.loop();
+    if (LoopNumber > NUM_LEDS + gap2) LoopNumber = 0;
   }
 }
 void ColorSweep() {
