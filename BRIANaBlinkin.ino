@@ -126,36 +126,8 @@ void callback(char* topic, byte * payload, unsigned int length) {
   String newPayload = String((char *)payload);
   int intPayload = newPayload.toInt();
 
-
   if (newTopic == "ablinkin/function") {
     currentFunction = newPayload;
-
-
-    /*
-        if (newPayload == "Manual") {
-          currentFunction = "Manual";
-        }
-        else if (newPayload == "MakeRed") {
-          currentFunction = "MakeRed";
-        }
-        else if (newPayload == "MakeOrange") {
-          currentFunction = "MakeOrange";
-        }
-        else if (newPayload == "MakeGreen") {
-          currentFunction = "MakeGreen";
-        }
-        else if (newPayload == "MakePurple") {
-          currentFunction = "MakePurple";
-        }
-        else if (newPayload == "OFF") {
-          fill_solid(leds, NUM_LEDS, CRGB::Black);
-        }
-        else if (newPayload == "Restart") {
-          ESP.restart();
-        }
-        else {
-          client.publish("ablinkin/status", "Unknown Command");
-        }*/
   }
 }
 
@@ -218,21 +190,16 @@ void MakePurple() {
 void MakePurplechase() {
   int purpleLed = 0;
   int gap = 20;
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
   while (currentFunction == "MakePurplechase") {
-     if (purpleLed + gap < NUM_LEDS) leds[purpleLed] = CRGB::Purple;
+     if (purpleLed < NUM_LEDS) leds[purpleLed] = CRGB::Purple;
      if (purpleLed - gap >= 0) leds[purpleLed - gap] = CRGB::Yellow;
      FastLED.show();
-     if (purpleLed + gap < NUM_LEDS) leds[purpleLed] = CRGB::Black;
+     if (purpleLed < NUM_LEDS) leds[purpleLed] = CRGB::Black;
      if (purpleLed - gap >= 0) leds[purpleLed - gap] = CRGB::Black;
      delay(20);
      purpleLed ++;
      client.loop();
-     if (purpleLed > NUM_LEDS) {
-       purpleLed = 0;
-     if (currentFunction != "MakePurplechase") break;
-     if (purpleLed > NUM_LEDS + gap) {
-          purpleLed = 0;
-    }
-   }
+     if (purpleLed > NUM_LEDS + gap) purpleLed = 0;
   }
-  }
+}
