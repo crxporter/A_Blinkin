@@ -1,34 +1,31 @@
-// ************************** VARIABLES ***********************
 #include <PubSubClient.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
-#include <SimpleTimer.h>
 #include <FastLED.h>
-#define DATA_PIN 2
-#define NUM_LEDS 150
-CRGB leds[NUM_LEDS];
 byte myHue = 60;
 byte mySat = 70;
 byte myVal = 160;
-const char *MYHOSTNAME = "KitchenESP02";
 
-// ************************* WIFI SETUP ***********************
+// ********* CHANGE EVERYTHING HERE *********
+#define DATA_PIN 2
+#define NUM_LEDS 150
+const char *MYHOSTNAME = "KitchenESP02";
 const char *ssid = "spaceship";
 const char *password = "thepassword";
 const char *mqtt_server = "192.168.0.124";
-const int mqtt_port = 1883;
 const char *mqtt_user = "openhabian";
 const char *mqtt_pass = "ohmqtt";
-
 const char *mqtt_client_name = MYHOSTNAME;
-String currentFunction = "Manual";
+// ************** DONE CHANGING *************
+
+CRGB leds[NUM_LEDS];
+const int mqtt_port = 1883;
+String currentFunction = "None";
 WiFiClient espClient;
 PubSubClient client(espClient);
-
-SimpleTimer timer;
 
 void setup() {
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
@@ -38,20 +35,14 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
   reconnect();
-
   ArduinoOTA.setHostname(MYHOSTNAME);
   ArduinoOTA.onStart([]() {
     String type;
-    if (ArduinoOTA.getCommand() == U_FLASH) {
-      type = "sketch";
-    } else { // U_SPIFFS
-      type = "filesystem";
-    }
+    if (ArduinoOTA.getCommand() == U_FLASH) type = "sketch";
   });
   ArduinoOTA.begin();
-
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);
-  fill_solid(leds, NUM_LEDS, CRGB::Purple);
+  fill_solid(leds, NUM_LEDS, CRGB::Green);
   FastLED.show();
   delay(1000);
   fill_solid(leds, NUM_LEDS, CRGB::Black);
@@ -59,47 +50,20 @@ void setup() {
 }
 
 void loop() {
-  if (!client.connected()) {
-    reconnect();
-  }
+  if (!client.connected()) reconnect();
   client.loop();
-  if (currentFunction == "OFF") {
-    fadeToBlackBy( leds, NUM_LEDS, 10);
-  }
-  if (currentFunction != "Manual") {
-    if (currentFunction == "MakeRed") {
-      MakeRed();
-    }
-    else if (currentFunction == "MakeOrange") {
-      MakeOrange();
-    }
-    else if (currentFunction == "CenterOut") {
-      CenterOut();
-    }
-    else if (currentFunction == "MakePurple") {
-      MakePurple();
-    }
-    else if (currentFunction == "MakePurplechase") {
-      MakePurplechase();
-    }
-    else if (currentFunction == "RGBChase") {
-      RGBChase();
-    }
-    else if (currentFunction == "ColorSweep") {
-      ColorSweep();
-    }
-    else if (currentFunction == "BoringSweep") {
-      BoringSweep();
-    }
-    else if (currentFunction == "ON") {
-      CenterOut();
-      //      fill_solid(leds, NUM_LEDS, CHSV(60, 70, 160));
-    }
-    else if (currentFunction == "mychsv") {
-      fill_solid(leds, NUM_LEDS, CHSV(myHue, mySat, myVal));
-    }
-  }
-  timer.run();
+  if (currentFunction == "mychsv") fill_solid(leds, NUM_LEDS, CHSV(myHue, mySat, myVal));
+  if (currentFunction == "MakeRed") MakeRed();
+  if (currentFunction == "MakeOrange") MakeOrange();
+  if (currentFunction == "CenterOut") CenterOut();
+  if (currentFunction == "MakePurple") MakePurple();
+  if (currentFunction == "PurpleYellow") PurpleYellow();
+  if (currentFunction == "RGBChase") RGBChase();
+  if (currentFunction == "ColorSweep") ColorSweep();
+  if (currentFunction == "BoringSweep") BoringSweep();
+  if (currentFunction == "ON") CenterOut();
+  if (currentFunction == "OFF") fadeToBlackBy (leds, NUM_LEDS, 10);
+  if (currentFunction == "Reset") ESP.restart();
   ArduinoOTA.handle();
   FastLED.show();
   delay(10);
@@ -107,30 +71,24 @@ void loop() {
 
 void setup_wifi() {
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  }
+  while (WiFi.status() != WL_CONNECTED) delay(500);
 }
 
 void reconnect() {
   int retries = 0;
   while (!client.connected()) {
-    if (retries < 150)  {
-      if (client.connect(mqtt_client_name, mqtt_user, mqtt_pass)) {
-        client.publish("kitchenws/status", "Ready");
-        client.subscribe("kitchenws/function");
-        client.subscribe("kitchenws/hue");
-        client.subscribe("kitchenws/sat");
-        client.subscribe("kitchenws/val");
-      }
-      else {
-        retries++;
-        delay(5000);
-      }
+    if (client.connect(mqtt_client_name, mqtt_user, mqtt_pass)) {
+      client.publish("kitchenws/status", "Ready");
+      client.subscribe("kitchenws/function");
+      client.subscribe("kitchenws/effect");
+      client.subscribe("kitchenws/hue");
+      client.subscribe("kitchenws/sat");
+      client.subscribe("kitchenws/val");
+      break;
     }
-    if (retries > 1000) {
-      ESP.restart();
-    }
+    retries++;
+    delay(5000);
+    if (retries == 150) ESP.restart();
   }
 }
 
@@ -139,18 +97,13 @@ void callback(char* topic, byte * payload, unsigned int length) {
   payload[length] = '\0';
   String newPayload = String((char *)payload);
   int intPayload = newPayload.toInt();
-  if (newTopic == "kitchenws/function") {
-    currentFunction = newPayload;
+  if (newTopic == "kitchenws/function") currentFunction = newPayload;
+  if (newTopic == "kitchenws/effect") {
+    if (newPayload == "Lightning") Lightning();
   }
-  if (newTopic == "kitchenws/hue") {
-    myHue = intPayload;
-  }
-  if (newTopic == "kitchenws/sat") {
-    mySat = intPayload;
-  }
-  if (newTopic == "kitchenws/val") {
-    myVal = intPayload;
-  }
+  if (newTopic == "kitchenws/hue") myHue = intPayload;
+  if (newTopic == "kitchenws/sat") mySat = intPayload;
+  if (newTopic == "kitchenws/val") myVal = intPayload;
 }
 
 void MakeRed() {
@@ -161,9 +114,7 @@ void MakeRed() {
     client.loop();
     if (currentFunction != "MakeRed") break;
   }
-  if (currentFunction == "MakeRed") {
-    currentFunction = "Manual";
-  }
+  if (currentFunction == "MakeRed") currentFunction = "None";
 }
 
 void MakeOrange() {
@@ -172,59 +123,47 @@ void MakeOrange() {
     FastLED.show();
     delay(250);
     client.loop();
-
+    if (currentFunction != "MakeOrange") break;
   }
-  if (currentFunction == "MakeOrange") {
-    currentFunction = "Manual";
-  }
+  if (currentFunction == "MakeOrange") currentFunction = "None";
 }
 
 void CenterOut() {
   for (int i = 0; i < NUM_LEDS - 68; i++) {
-    if ( i <= 68) {
-      leds[68 - i] = CHSV(myHue, mySat, myVal);
-    }
+    if ( i <= 68) leds[68 - i] = CHSV(myHue, mySat, myVal);
     leds[68 + i] = CHSV(myHue, mySat, myVal);
     FastLED.show();
     delay(50);
     client.loop();
-    if ( i == NUM_LEDS - 69) {
-      currentFunction = "Manual";
-      client.publish("kitchenws/status", "manual mode");
-      client.publish("kitchenws/status", "Ready");
-    }
+    if (currentFunction != "CenterOut") break;
   }
+  if (currentFunction == "CenterOut") currentFunction = "mychsv";
 }
-
 void MakePurple() {
-  int purpleLed = 0;
+  int loopNumber = 0;
   while (currentFunction == "MakePurple") {
-    leds[purpleLed] = CRGB::Purple;
+    leds[loopNumber] = CRGB::Purple;
     FastLED.show();
-    leds[purpleLed] = CRGB::Black;
+    leds[loopNumber] = CRGB::Black;
     delay(20);
-    purpleLed ++;
+    loopNumber ++;
     client.loop();
-    if (purpleLed > NUM_LEDS) {
-      purpleLed = 0;
-    }
+    if (loopNumber > NUM_LEDS) loopNumber = 0;
   }
 }
-void MakePurplechase() {
-  int purpleLed = 0;
+void PurpleYellow() {
+  int loopNumber = 0;
   int gap = 20;
-  while (currentFunction == "MakePurplechase") {
-    if (purpleLed < NUM_LEDS) leds[purpleLed] = CRGB::Purple;
-    if (purpleLed - gap >= 0) leds[purpleLed - gap] = CRGB::Yellow;
+  while (currentFunction == "PurpleYellow") {
+    if (loopNumber < NUM_LEDS) leds[loopNumber] = CRGB::Purple;
+    if (loopNumber - gap >= 0) leds[loopNumber - gap] = CRGB::Yellow;
     FastLED.show();
-    if (purpleLed <  NUM_LEDS) leds[purpleLed] = CRGB::Black;
-    if (purpleLed - gap >= 0) leds[purpleLed - gap] = CRGB::Black;
+    if (loopNumber <  NUM_LEDS) leds[loopNumber] = CRGB::Black;
+    if (loopNumber - gap >= 0) leds[loopNumber - gap] = CRGB::Black;
     delay(20);
-    purpleLed ++;
+    loopNumber ++;
     client.loop();
-    if (purpleLed > NUM_LEDS + gap) {
-      purpleLed = 0;
-    }
+    if (loopNumber > NUM_LEDS + gap) loopNumber = 0;
   }
 }
 void RGBChase() {
@@ -254,9 +193,8 @@ void ColorSweep() {
       fadeToBlackBy( leds, NUM_LEDS, 10);
       delay(10);
       client.loop();
-      if (hue > 255) {
-        hue -= 255;
-      }
+      if (currentFunction != "ColorSweep") break;
+      if (hue > 255) hue -= 255;
     }
     for (int i = (NUM_LEDS) - 1; i >= 0; i--) {
       leds[i] = CHSV(hue++, 255, 255);
@@ -264,12 +202,12 @@ void ColorSweep() {
       fadeToBlackBy( leds, NUM_LEDS, 10);
       delay(10);
       client.loop();
-      if (hue > 255) {
-        hue -= 255;
-      }
+      if (currentFunction != "ColorSweep") break;
+      if (hue > 255) hue -= 255;
     }
   }
 }
+
 void BoringSweep() {
   static uint8_t hue = 0;
   while (currentFunction == "BoringSweep") {
@@ -279,23 +217,49 @@ void BoringSweep() {
       fadeToBlackBy( leds, NUM_LEDS, 10);
       delay(10);
       client.loop();
+      if (currentFunction != "BoringSweep") break;
     }
     hue += 20;
+    if (hue > 255) hue -= 255;
     for (int i = (NUM_LEDS) - 1; i >= 0; i--) {
       leds[i] = CHSV(hue, 255, 255);
       FastLED.show();
       fadeToBlackBy( leds, NUM_LEDS, 10);
       delay(10);
       client.loop();
+      if (currentFunction != "BoringSweep") break;
     }
     hue += 20;
-    if (hue > 255) {
-      hue -= 255;
-    }
+    if (hue > 255) hue -= 255;
   }
 }
-void ManualMode() {
-  currentFunction == "Manual";
-  client.publish("kitchenws/status", "manual mode");
-
+void Lightning() {
+  // ***Backup previous LED state***
+  CRGB backupLeds[NUM_LEDS];
+  for (int i = 0; i < NUM_LEDS; i++) backupLeds[i] = leds[i];
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
+  delay(250);
+  // ***Define lightning settings***
+  uint8_t frequency = 75;
+  uint8_t flashes = 10;
+  int dimmer = 1;
+  uint8_t ledstart = random8(NUM_LEDS - 50);
+  uint8_t ledlen = random8(50, NUM_LEDS - ledstart);
+  // *** Run lightning loop, will run between 3 and flashes times***
+  for (int flashCounter = 0; flashCounter < random8(3, flashes); flashCounter++) {
+    if (flashCounter == 0) dimmer = 5;
+    else dimmer = random8(1, 3);
+    fill_solid(leds + ledstart, ledlen, CHSV(0, 0, 255 / dimmer));
+    FastLED.show();
+    delay(random8(4, 10));
+    fill_solid(leds, NUM_LEDS, CRGB::Black);
+    FastLED.show();
+    if (flashCounter == 0) delay (250);
+    delay(50 + random8(100));
+  }
+  // ***Restore previous LED state***
+  delay(250);
+  for (int i = 0; i < NUM_LEDS; i++) leds[i] = backupLeds[i];
+  FastLED.show();
 }
