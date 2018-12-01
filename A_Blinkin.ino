@@ -31,7 +31,8 @@ void setup() {
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   WiFi.mode(WIFI_STA);
   WiFi.hostname(MYHOSTNAME);
-  setup_wifi();
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
   reconnect();
@@ -67,11 +68,6 @@ void loop() {
   ArduinoOTA.handle();
   FastLED.show();
   delay(10);
-}
-
-void setup_wifi() {
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
 }
 
 void reconnect() {
