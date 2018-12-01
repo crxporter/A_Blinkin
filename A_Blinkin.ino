@@ -129,6 +129,7 @@ void MakeOrange() {
 }
 
 void CenterOut() {
+  currentFunction = "CenterOut";
   for (int i = 0; i < NUM_LEDS - 68; i++) {
     if ( i <= 68) leds[68 - i] = CHSV(myHue, mySat, myVal);
     leds[68 + i] = CHSV(myHue, mySat, myVal);
