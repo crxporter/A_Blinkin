@@ -1,0 +1,177 @@
+[
+    {
+        "id": "baa33b92.aeb0c8",
+        "type": "ui_slider",
+        "z": "66c7c84d.800a28",
+        "name": "Hue",
+        "label": "Hue",
+        "group": "1ffc8053.3ff638",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "topic": "kitchenws/hue",
+        "min": 0,
+        "max": "255",
+        "step": 1,
+        "x": 270,
+        "y": 800,
+        "wires": [
+            [
+                "92c8d97.3aec3a8",
+                "ce1795d.07c7e68"
+            ]
+        ]
+    },
+    {
+        "id": "2ca9e33f.7bdef4",
+        "type": "ui_slider",
+        "z": "66c7c84d.800a28",
+        "name": "Val",
+        "label": "Value",
+        "group": "1ffc8053.3ff638",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "topic": "kitchenws/val",
+        "min": 0,
+        "max": "255",
+        "step": 1,
+        "x": 270,
+        "y": 920,
+        "wires": [
+            [
+                "f5bfbadc.6295a8",
+                "ce1795d.07c7e68"
+            ]
+        ]
+    },
+    {
+        "id": "160e8dca.5aa652",
+        "type": "ui_slider",
+        "z": "66c7c84d.800a28",
+        "name": "Sat",
+        "label": "Saturation",
+        "group": "1ffc8053.3ff638",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "topic": "kitchenws/sat",
+        "min": 0,
+        "max": "255",
+        "step": 1,
+        "x": 270,
+        "y": 860,
+        "wires": [
+            [
+                "6751ee9c.d146",
+                "ce1795d.07c7e68"
+            ]
+        ]
+    },
+    {
+        "id": "92c8d97.3aec3a8",
+        "type": "ui_text",
+        "z": "66c7c84d.800a28",
+        "group": "1ffc8053.3ff638",
+        "order": 0,
+        "width": "1",
+        "height": "1",
+        "name": "H",
+        "label": "H",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 550,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "6751ee9c.d146",
+        "type": "ui_text",
+        "z": "66c7c84d.800a28",
+        "group": "1ffc8053.3ff638",
+        "order": 0,
+        "width": "1",
+        "height": "1",
+        "name": "S",
+        "label": "S",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 550,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "f5bfbadc.6295a8",
+        "type": "ui_text",
+        "z": "66c7c84d.800a28",
+        "group": "1ffc8053.3ff638",
+        "order": 0,
+        "width": "1",
+        "height": "1",
+        "name": "V",
+        "label": "V",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 550,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "ce1795d.07c7e68",
+        "type": "mqtt out",
+        "z": "66c7c84d.800a28",
+        "name": "Function",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "broker": "dc55984b.b99b4",
+        "x": 540,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "1ffc8053.3ff638",
+        "type": "ui_group",
+        "z": "",
+        "name": "Controls",
+        "tab": "dec87fa2.88dfb",
+        "disp": true,
+        "width": "3",
+        "collapse": false
+    },
+    {
+        "id": "dc55984b.b99b4",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "OH",
+        "broker": "openhabianpi.local",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": ""
+    },
+    {
+        "id": "dec87fa2.88dfb",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Home",
+        "icon": "dashboard"
+    }
+]
