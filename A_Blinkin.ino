@@ -18,9 +18,9 @@ const char *password = "thepassword";
 const char *mqtt_server = "192.168.0.124";
 const char *mqtt_user = "openhabian";
 const char *mqtt_pass = "ohmqtt";
-const char *mqtt_client_name = MYHOSTNAME;
 // ************** DONE CHANGING *************
 
+const char *mqtt_client_name = MYHOSTNAME;
 CRGB leds[NUM_LEDS];
 const int mqtt_port = 1883;
 String currentFunction = "None";
