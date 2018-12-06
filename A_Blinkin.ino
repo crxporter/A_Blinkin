@@ -2,6 +2,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <FastLED.h>
@@ -21,6 +22,8 @@ const char *mqtt_pass = "ohmqtt";
 const char *mqtt_client_name = MYHOSTNAME;
 // ************** DONE CHANGING *************
 
+ESP8266WebServer server(80);
+const char* serverIndex = "<form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>";
 CRGB leds[NUM_LEDS];
 const int mqtt_port = 1883;
 String currentFunction = "None";
@@ -32,7 +35,36 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.hostname(MYHOSTNAME);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) delay(500);
+  if (WiFi.waitForConnectResult() == WL_CONNECTED) {
+    MDNS.begin(MYHOSTNAME);
+    server.on("/", HTTP_GET, []() {
+      server.sendHeader("Connection", "close");
+      server.send(200, "text/html", serverIndex);
+    });
+    server.on("/update", HTTP_POST, []() {
+      server.sendHeader("Connection", "close");
+      server.send(200, "text/plain", (Update.hasError()) ? "FAIL" : "OK");
+      ESP.restart();
+    }, []() {
+      HTTPUpload& upload = server.upload();
+      if (upload.status == UPLOAD_FILE_START) {
+        WiFiUDP::stopAll();
+        uint32_t maxSketchSpace = (ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000;
+        if (!Update.begin(maxSketchSpace)) {
+        }
+      } else if (upload.status == UPLOAD_FILE_WRITE) {
+        if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+        }
+      } else if (upload.status == UPLOAD_FILE_END) {
+        if (Update.end(true)) {
+        } else {
+        }
+      }
+      yield();
+    });
+    server.begin();
+    MDNS.addService("http", "tcp", 80);
+  }
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
   reconnect();
@@ -67,6 +99,7 @@ void loop() {
   if (currentFunction == "OFF") fadeToBlackBy (leds, NUM_LEDS, 10);
   if (currentFunction == "Reset") ESP.restart();
   ArduinoOTA.handle();
+  server.handleClient();
   FastLED.show();
   delay(10);
 }
