@@ -18,9 +18,9 @@ const char *password = "thepassword";
 const char *mqtt_server = "192.168.0.124";
 const char *mqtt_user = "openhabian";
 const char *mqtt_pass = "ohmqtt";
+const char *mqtt_client_name = MYHOSTNAME;
 // ************** DONE CHANGING *************
 
-const char *mqtt_client_name = MYHOSTNAME;
 CRGB leds[NUM_LEDS];
 const int mqtt_port = 1883;
 String currentFunction = "None";
@@ -63,6 +63,7 @@ void loop() {
   if (currentFunction == "ColorSweep") ColorSweep();
   if (currentFunction == "BoringSweep") BoringSweep();
   if (currentFunction == "ON") CenterOut();
+  if (currentFunction == "CandyCane") CandyCane();
   if (currentFunction == "OFF") fadeToBlackBy (leds, NUM_LEDS, 10);
   if (currentFunction == "Reset") ESP.restart();
   ArduinoOTA.handle();
@@ -259,4 +260,50 @@ void Lightning() {
   delay(250);
   for (int i = 0; i < NUM_LEDS; i++) leds[i] = backupLeds[i];
   FastLED.show();
+}
+void CandyCane() {
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
+  for (int i = 0; i < NUM_LEDS; i += 5) leds[i] = CRGB::Red;
+  for (int i = 1; i < NUM_LEDS; i += 5) leds[i] = CRGB::White;
+  for (int i = 2; i < NUM_LEDS; i += 5) leds[i] = CRGB::Green;
+  for (int i = 3; i < NUM_LEDS; i += 5) leds[i] = CRGB::White;
+  FastLED.show();
+  CRGB last;
+  while (currentFunction == "CandyCane") {
+    last = leds[0];
+    for (int i = 0; i < NUM_LEDS - 1; i++) leds[i] = leds[i + 1];
+    leds[NUM_LEDS - 1] = last;
+    FastLED.show();
+    delay(250);
+    client.loop();
+  }
+}
+void TwinkleCane() {
+  fill_solid(leds, NUM_LEDS, CRGB::Black);
+  FastLED.show();
+  for (int i = 0; i < NUM_LEDS; i += 5) leds[i] = CRGB::Red;
+  for (int i = 1; i < NUM_LEDS; i += 5) leds[i] = CRGB::Red;
+  for (int i = 2; i < NUM_LEDS; i += 5) leds[i] = CRGB::Green;
+  for (int i = 3; i < NUM_LEDS; i += 5) leds[i] = CRGB::Green;
+  FastLED.show();
+  CRGB last;
+  int std;
+  int stdRisk=80;
+  while (currentFunction == "CandyCane") {
+    EVERY_N_MILLISECONDS(250) {
+      last = leds[0];
+      for (int i = 0; i < NUM_LEDS - 1; i++) leds[i] = leds[i + 1];
+      leds[NUM_LEDS - 1] = last;
+      client.loop();
+    }
+    if (random8() < stdRisk) {
+      std = random16(NUM_LEDS)-1;
+      last = leds[std];
+      leds[std] = CRGB::White;
+      FastLED.show();
+      leds[std] = last;
+    } else FastLED.show();
+    delay(20);
+  }
 }
